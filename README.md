@@ -178,26 +178,5 @@ Create the following folders and note their IDs:
 | `YOUR_DRIVE_TEMPLATE_PROTOCOL` | Protocol template file ID |
 | `YOUR_DRIVE_TEMPLATE_WORK_ORDER` | Work order template file ID |
 
-### Import Steps
-
-1. Clone or download this repository
-2. Open your n8n instance → **Workflows** → **Import from file**
-3. Select `workflows/Magnus.json`
-4. In each imported node, replace all `YOUR_SPREADSHEET_ID_*` and `YOUR_DRIVE_*` placeholders with your actual IDs
-5. Update the **Fakturownia** subdomain: replace `your-company.fakturownia.pl` with your account URL
-6. Set your **Fakturownia API token** in the HTTP Request nodes (replace `FAKTUROWNIA_API_TOKEN`)
-7. Re-link all OAuth credentials:
-   - `CREDENTIAL_ID_SHEETS` → your Google Sheets OAuth2 credential
-   - `CREDENTIAL_ID_DRIVE` → your Google Drive OAuth2 credential
-   - `CREDENTIAL_ID_GMAIL` → your Gmail OAuth2 credential
-8. Activate the workflow
-
-### Environment Notes
-
-- The workflow uses **n8n expressions** throughout — do not modify node IDs or output field names without tracing all downstream references
-- Gmail triggers require the workflow to be **active** (not just saved)
-- Schedule triggers run on the configured timezone of your n8n instance
-
----
 
 
