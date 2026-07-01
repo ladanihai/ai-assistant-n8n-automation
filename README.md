@@ -89,8 +89,6 @@ The entire state of the business (quotes, orders, client folders, numbering) is 
 | `Numeracja` | Auto-numbering for contracts/invoices |
 | `Todo` | Manual task board |
 
-![Order Sheet Overview](images/google-sheets-orders-redacted.png)
-*Screenshot redacted — contains customer data*
 
 ---
 
