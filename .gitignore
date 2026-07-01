@@ -1,0 +1,19 @@
+# System
+.DS_Store
+Thumbs.db
+
+# Środowisko
+.env
+.env.local
+.env.*.local
+
+# Logi
+*.log
+logs/
+
+# Pliki tymczasowe
+*.tmp
+*.bak
+
+# PDF i dokumenty projektowe
+*.pdf
