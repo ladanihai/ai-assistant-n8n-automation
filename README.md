@@ -202,6 +202,4 @@ Create the following folders and note their IDs:
 
 ---
 
-## License
 
-This project is shared for educational and portfolio purposes. You are free to adapt it for your own use. Not for resale.
