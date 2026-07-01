@@ -1,19 +1,27 @@
-# System
+# macOS system files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
-# Środowisko
+# Environment / secrets
 .env
 .env.local
 .env.*.local
+*.secret
 
-# Logi
+# Logs
 *.log
 logs/
 
-# Pliki tymczasowe
+# Temporary files
 *.tmp
 *.bak
+*.swp
+*~
 
-# PDF i dokumenty projektowe
+# Project PDFs / internal docs
 *.pdf

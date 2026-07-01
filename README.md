@@ -1,214 +1,207 @@
-# Asystent AI do Automatyzacji Procesów Biznesowych
+# AI Assistant for Business Process Automation
 
-Zaprojektowałam i wdrożyłam rozbudowany system automatyzacji procesów biznesowych dla firmy zajmującej się sprzedażą i montażem okien, drzwi, parapetów, rolet oraz bram. Celem projektu było stworzenie inteligentnego asystenta AI opartego na modelu OpenAI w ChatGPT, który pozwala właścicielowi firmy zarządzać codzienną pracą za pomocą prostych komend w naturalnym języku.
+> A production-grade n8n automation system that replaces manual office work with an intelligent, multi-module AI assistant — from customer inquiries through quoting, ordering, invoicing, and document generation.
 
----
-
-## Zakres prac
-
-System składa się z wielu połączonych workflow w n8n. Każdy workflow odpowiada za konkretny proces biznesowy i komunikuje się z asystentem AI przez własne endpointy API.
-
-Zakres obejmował:
-
-- tworzenie i aktualizację wycen
-- przenoszenie wycen do zamówień
-- tworzenie zamówień bez wcześniejszej wyceny
-- generowanie dokumentów dla klienta
-- tworzenie faktur zaliczkowych, końcowych i zwykłych
-- zapis faktur i dokumentów w Google Drive
-- automatyczną organizację folderów klienta
-- analizę i zapis danych z plików WEB / kosztorysów producentów
-- porównywanie danych z zamówienia z plikami producenta
-- obsługę reklamacji
-- tworzenie maili roboczych i wysyłanie wiadomości
-- wysyłkę zleceń do ekip montażowych
-- przypomnienia Todo
-- podsumowania dnia
-- integrację z Google Calendar
-- integrację SMS
-- obsługę statusów zamówień i dostaw
-- zarządzanie kontrahentami i producentami
-- bezpieczne wyszukiwanie rekordów po ID, telefonie, nazwisku, e-mailu oraz produkcie
+![Main n8n Workflow](images/workflow-main-order-processing.png)
 
 ---
 
-## Technologie
+## Project Overview
 
-| Narzędzie | Zastosowanie |
+This project is a comprehensive AI-powered automation platform built on **n8n** for a company in the window and door industry. It eliminates repetitive manual tasks across the full customer lifecycle — from the first inquiry to the final invoice.
+
+The system operates as a collection of interconnected n8n sub-workflows, each responsible for a distinct business function. Together they form a seamless pipeline: an AI assistant handles customer questions in real time, while background automations manage quotes, orders, contracts, work orders, and invoices — all without manual intervention.
+
+The entire state of the business (quotes, orders, client folders, numbering) is synchronized across **Google Sheets**, **Google Drive**, and **Fakturownia** (invoicing platform), with **Gmail** as the communication layer.
+
+---
+
+## System Features
+
+### AI Chatbot Assistant
+- Integrated with **ChatGPT** (via custom GPT) to answer customer questions about products and pricing in real time
+- Supports complex queries: pricing with/without installation, product variants, configuration options
+- Returns structured, copy-paste-ready responses for sales staff
+
+![AI Chatbot in Action](images/ai-chatbot-pricing-query.png)
+
+---
+
+### Quote Management
+- Accepts quotes submitted via webhook (e.g. from a website form or chat)
+- Validates and fuzzy-matches incoming quotes against the existing quote database (by phone, address, surname)
+- Automatically records quotes into a dedicated **Google Sheets** spreadsheet
+- Triggers follow-up tasks when no decision is made within a set timeframe
+
+---
+
+### Order Processing
+- Converts approved quotes into full orders with one action
+- Automatically calculates lead times and assembly dates
+- Sends structured order data to the production team
+- Creates client-specific **Google Drive** folders with auto-generated documents:
+  - Contract (`Umowa`)
+  - Installation Protocol (`Protokół`)
+  - Work Order (`Zlecenie`)
+
+![Google Drive Document Structure](images/google-drive-document-structure.png)
+
+---
+
+### Invoice & Payment Automation
+- Creates invoices in **Fakturownia** automatically (deposit invoice, final invoice, standard invoice)
+- Fetches the generated PDF and delivers it via Gmail to the client
+- Supports multiple invoice types: deposit, final, manual override
+- Tracks `Fakturownia` order ID back to the Google Sheets record
+
+![Invoice Automation Sub-workflow](images/workflow-invoice-automation.png)
+
+---
+
+### Email Monitoring & Classification
+- Monitors Gmail inbox on a schedule
+- Classifies incoming emails into categories: new quote, order confirmation, contractor communication, internal
+- Routes each email to the correct sub-workflow for processing
+- Extracts structured data (client name, phone, address) from email body using AI
+
+![Email Monitoring Workflow](images/workflow-email-monitoring.png)
+
+---
+
+### Task & Todo Management
+- Automatically creates todo tasks in a **Google Sheets** task board when manual action is required
+- Generates tasks for: unmatched quotes, assembly scheduling, payment follow-up, and production review
+- Each task includes client name, phone, address, and deadline
+
+---
+
+### Google Sheets Data Layer
+- All business data is stored in structured Google Sheets:
+
+| Sheet | Purpose |
 |---|---|
-| **n8n** | Silnik automatyzacji — workflow, logika, integracje |
-| **OpenAI / ChatGPT** | Interfejs asystenta AI, rozpoznawanie intencji |
-| **JavaScript** | Kod logiki biznesowej w węzłach n8n |
-| **REST API / OpenAPI** | Komunikacja między asystentem a workflow |
-| **Google Sheets** | Baza danych wycen, zamówień, kontrahentów |
-| **Google Drive** | Przechowywanie dokumentów i folderów klientów |
-| **Gmail** | Komunikacja mailowa |
-| **Google Calendar** | Planowanie montażów i przypomnień |
-| **Fakturownia API** | Wystawianie i pobieranie faktur |
-| **SMS API** | Powiadomienia dla klientów |
-| **JSON** | Format wymiany danych między węzłami |
+| `Wyceny` | Quote pipeline |
+| `Zamówienia` | Order records |
+| `Kontrahenci` | Client database |
+| `Cennik Ekipa` | Installation team pricelist |
+| `Cennik Parapety` | Window sill pricelists |
+| `Czas realizacji` | Lead time configuration |
+| `Numeracja` | Auto-numbering for contracts/invoices |
+| `Todo` | Manual task board |
 
-Byłam odpowiedzialna za analizę procesu biznesowego, projekt architektury automatyzacji, przygotowanie logiki workflow, konfigurację integracji, tworzenie endpointów API, pisanie kodu JavaScript w n8n, testowanie scenariuszy oraz poprawianie działania systemu na podstawie feedbacku właściciela firmy.
+![Order Sheet Overview](images/google-sheets-orders-redacted.png)
+*Screenshot redacted — contains customer data*
 
 ---
 
-## Najważniejsze funkcje systemu
+## Tech Stack
 
-### 1. Asystent AI sterowany komendami właściciela
-
-System pozwala właścicielowi firmy wykonywać działania przez zwykły czat w ChatGPT. Użytkownik nie musi znać nazw workflow, API ani struktury arkuszy — wpisuje polecenie naturalnym językiem, a asystent rozpoznaje intencję i uruchamia odpowiedni proces.
-
-**Przykładowe komendy:**
-
-```
-"Stwórz wycenę dla klienta X"
-"Przenieś klienta X do zamówień"
-"Wystaw fakturę zaliczkową dla klienta X"
-"Przygotuj umowę dla klienta X"
-"Wyślij mail do producenta"
-"Pokaż wszystkie reklamacje"
-"Usuń wycenę klienta X"
-"Dodaj przypomnienie do Todo"
-"Sprawdź, czy przyszło zamówienie"
-```
-
----
-
-### 2. Automatyzacja wycen i zamówień
-
-System tworzy nowe wyceny i zamówienia w Google Sheets, zapisuje dane klienta, produkty, ceny, statusy, terminy, informacje o montażu oraz dokumenty powiązane z klientem.
-
-Dodana logika wyszukiwania istniejących rekordów zapobiega tworzeniu duplikatów. Rekordy są wyszukiwane po:
-
-- ID wyceny / ID zamówienia
-- numerze telefonu
-- nazwisku, e-mailu
-- produkcie, modelu, wymiarach, kolorze
-
-Jeżeli system znajdzie kilka podobnych rekordów, nie wykonuje akcji automatycznie — zwraca listę dopasowań i prosi właściciela o wybór właściwego rekordu.
-
----
-
-### 3. Dokumenty klienta
-
-System generuje dokumenty na podstawie danych zapisanych w arkuszach i folderach klienta. Obsługiwane typy dokumentów:
-
-- umowy
-- protokoły
-- zlecenia dla ekipy montażowej
-- dokumenty do zamówień
-- dokumenty powiązane z montażem
-
-Wszystkie dokumenty są automatycznie zapisywane w odpowiednich folderach Google Drive.
-
----
-
-### 4. Integracja z Fakturownią
-
-Wdrożona integracja z Fakturownią umożliwia tworzenie różnych typów faktur bezpośrednio z poziomu asystenta AI:
-
-- faktury zaliczkowe
-- faktury końcowe
-- faktury zwykłe
-
-System zapisuje numery i linki do faktur w arkuszu, pobiera dokumenty PDF i umieszcza je w Google Drive, a następnie zwraca właścicielowi gotową odpowiedź z numerem faktury i linkiem do pliku.
-
----
-
-### 5. Automatyczna organizacja Google Drive
-
-System tworzy i aktualizuje foldery klientów w Google Drive. Dokumenty, faktury, pliki WEB, kosztorysy, umowy i inne załączniki są zapisywane w odpowiednim miejscu. Dzięki temu wszystkie dane klienta są połączone z rekordem w Google Sheets i dostępne w jednym miejscu.
-
----
-
-### 6. Obsługa plików WEB i kosztorysów producentów
-
-System analizuje pliki WEB / kosztorysy producentów, wyciąga z nich kluczowe dane i zapisuje je w arkuszach. Rozpoznaje:
-
-- modele produktów, wymiary, kolory, ilości
-- ceny netto, sumy netto
-- usługi i montaż
-- pozycje produktowe
-- dane producenta i numer WEB / kosztorysu
-
-Dane mogą być następnie porównywane z zamówieniem klienta w celu wykrycia rozbieżności między zamówieniem a specyfikacją producenta.
-
----
-
-### 7. Komunikacja mailowa
-
-System obsługuje komunikację mailową przez Gmail. W zależności od komendy właściciela może:
-
-- utworzyć mail roboczy (draft) lub wysłać wiadomość bezpośrednio
-- odpowiedzieć klientowi lub kontrahentowi
-- przygotować wiadomość do producenta
-- obsłużyć reklamacje
-- rozpoznać typ wiadomości i przypisać ją do odpowiedniego procesu
-- zapisać załączniki
-
----
-
-### 8. Reklamacje
-
-System wspiera obsługę reklamacji — zapisuje zgłoszenia, przypisuje je do klienta, analizuje wiadomości, pracuje z załącznikami i zdjęciami oraz tworzy zadania do dalszej obsługi. Właściciel może w każdej chwili sprawdzić aktywne reklamacje i status ich rozwiązania.
-
----
-
-### 9. Todo, przypomnienia i podsumowania dnia
-
-System automatycznie tworzy przypomnienia i podsumowania dnia, uwzględniając statusy zamówień, faktury, reklamacje, zadania, zamówienia u producentów i płatności.
-
-Automatyzacja jest dopasowana do realnego trybu pracy firmy:
-
-- brak wysyłki podsumowań w niedzielę
-- osobny harmonogram dla soboty
-- przypomnienia o płatnościach raz w tygodniu
-- przypomnienia o zamówieniach ze statusem „do zamówienia"
-- przypomnienia o montażach
-- zadania dla faktur kosztowych i płatności ręcznych
-
----
-
-### 10. Integracja SMS i kalendarza
-
-- **SMS API** — powiadomienia przy zmianie statusu zamówienia, dostawie, gotowości produktu lub informacji dla klienta
-- **Google Calendar** — planowanie montażów, przypomnień oraz zadań powiązanych z terminami
-
----
-
-## Skala projektu
-
-| Obszar | Liczba |
+| Component | Technology |
 |---|---|
-| Główne obszary automatyzacji | ponad 8 |
-| Scenariusze biznesowe | ponad 20 |
-| Endpointy API | kilkanaście |
-| Zintegrowane narzędzia | 7 |
-| Typy obsługiwanych dokumentów | min. 4 |
-| Typy faktur | min. 3 |
-
-Projekt obejmuje ponadto: kilka arkuszy operacyjnych w Google Sheets, automatyczne foldery klientów w Google Drive, logikę wyszukiwania rekordów po wielu polach, zabezpieczenia przed duplikatami, obsługę przypadków z wieloma podobnymi rekordami oraz automatyczne odpowiedzi dla właściciela po każdej zakończonej akcji.
-
----
-
-## Efekt biznesowy
-
-System znacząco skraca czas wykonywania powtarzalnych działań w firmie. Właściciel może zarządzać procesami z poziomu jednego czatu, bez ręcznego przełączania się między Google Sheets, Google Drive, Gmail, Fakturownią i kalendarzem.
-
-**Najważniejsze efekty:**
-
-- mniej ręcznego przepisywania danych
-- mniejsze ryzyko pomyłek w zamówieniach i fakturach
-- szybsze tworzenie dokumentów
-- lepsza organizacja plików klienta
-- prostsza obsługa reklamacji
-- większa kontrola nad statusami zamówień
-- automatyczne przypomnienia o ważnych zadaniach
-- centralizacja danych w jednym systemie
-- możliwość zarządzania firmą przez naturalne komendy w czacie
+| Workflow engine | [n8n](https://n8n.io) (self-hosted) |
+| AI / LLM | OpenAI ChatGPT (custom GPT) |
+| Scripting | JavaScript (n8n Code nodes) |
+| Data storage | Google Sheets (via OAuth2) |
+| File storage | Google Drive (via OAuth2) |
+| Email | Gmail (via OAuth2, trigger + send) |
+| Invoicing | [Fakturownia](https://fakturownia.pl) REST API |
+| Document generation | Google Docs API (`batchUpdate`) |
+| Triggers | Webhooks, Gmail triggers, Schedule triggers |
 
 ---
 
-## Podsumowanie
+## Project Scale
 
-W efekcie powstał centralny system operacyjny wspierający codzienną pracę właściciela firmy. Rozwiązanie znacząco ograniczyło liczbę ręcznych operacji administracyjnych, skróciło czas obsługi procesów biznesowych oraz umożliwiło zarządzanie firmą za pomocą inteligentnego asystenta AI.
+| Metric | Value |
+|---|---|
+| Total nodes | **280** |
+| Sub-workflows | **5** |
+| Code (JS) nodes | 63 |
+| Google Sheets nodes | 63 |
+| Conditional (IF) nodes | 35 |
+| Webhook / respond nodes | 48 |
+| Gmail nodes | 14 |
+| HTTP Request nodes | 14 |
+| Google Drive nodes | 15 |
+
+---
+
+## Workflow Architecture
+
+The system is organized into a main workflow and five specialized sub-workflows:
+
+![Complete Workflow Overview](images/workflow-complete-overview.png)
+
+![Sub-workflows Overview](images/workflow-sub-workflows-overview.png)
+
+![Order Automation Detail](images/workflow-order-automation.png)
+
+---
+
+## Deployment & JSON Import Guide
+
+### Prerequisites
+
+- A running **n8n** instance (self-hosted or n8n Cloud)
+- Google account with OAuth2 credentials configured in n8n for:
+  - Google Sheets
+  - Google Drive
+  - Gmail
+- A **Fakturownia** account with API access
+- A **Custom GPT** (ChatGPT) configured as the AI assistant
+
+### Google Sheets Setup
+
+Create the following spreadsheets in your Google Drive and note their IDs:
+
+| Placeholder in JSON | Sheet Purpose |
+|---|---|
+| `YOUR_SPREADSHEET_ID_QUOTES` | Quote pipeline (`Wyceny`) |
+| `YOUR_SPREADSHEET_ID_ORDERS` | Order records (`Zamówienia`) |
+| `YOUR_SPREADSHEET_ID_CLIENTS` | Client database (`Kontrahenci`) |
+| `YOUR_SPREADSHEET_ID_TODO` | Task board (`Todo`) |
+| `YOUR_SPREADSHEET_ID_NUMBERING` | Contract/invoice numbering |
+| `YOUR_SPREADSHEET_ID_LEAD_TIME` | Lead time config |
+| `YOUR_SPREADSHEET_ID_PRICELIST_TEAM` | Installation team pricelist |
+| `YOUR_SPREADSHEET_ID_PRICELIST_EXT_SILLS` | External window sill pricelist |
+| `YOUR_SPREADSHEET_ID_PRICELIST_INT_SILLS` | Internal PVC sill pricelist |
+
+### Google Drive Setup
+
+Create the following folders and note their IDs:
+
+| Placeholder in JSON | Folder Purpose |
+|---|---|
+| `YOUR_DRIVE_FOLDER_CLIENTS_ACTIVE` | Active client folders |
+| `YOUR_DRIVE_FOLDER_INVOICES` | Manual invoice uploads |
+| `YOUR_DRIVE_FOLDER_CONTRACTS_GLOBAL` | Signed contracts archive |
+| `YOUR_DRIVE_FOLDER_PROTOCOLS_GLOBAL` | Signed protocols archive |
+| `YOUR_DRIVE_TEMPLATE_CONTRACT` | Contract template file ID |
+| `YOUR_DRIVE_TEMPLATE_PROTOCOL` | Protocol template file ID |
+| `YOUR_DRIVE_TEMPLATE_WORK_ORDER` | Work order template file ID |
+
+### Import Steps
+
+1. Clone or download this repository
+2. Open your n8n instance → **Workflows** → **Import from file**
+3. Select `workflows/Magnus.json`
+4. In each imported node, replace all `YOUR_SPREADSHEET_ID_*` and `YOUR_DRIVE_*` placeholders with your actual IDs
+5. Update the **Fakturownia** subdomain: replace `your-company.fakturownia.pl` with your account URL
+6. Set your **Fakturownia API token** in the HTTP Request nodes (replace `FAKTUROWNIA_API_TOKEN`)
+7. Re-link all OAuth credentials:
+   - `CREDENTIAL_ID_SHEETS` → your Google Sheets OAuth2 credential
+   - `CREDENTIAL_ID_DRIVE` → your Google Drive OAuth2 credential
+   - `CREDENTIAL_ID_GMAIL` → your Gmail OAuth2 credential
+8. Activate the workflow
+
+### Environment Notes
+
+- The workflow uses **n8n expressions** throughout — do not modify node IDs or output field names without tracing all downstream references
+- Gmail triggers require the workflow to be **active** (not just saved)
+- Schedule triggers run on the configured timezone of your n8n instance
+
+---
+
+## License
+
+This project is shared for educational and portfolio purposes. You are free to adapt it for your own use. Not for resale.
